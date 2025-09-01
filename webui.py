@@ -43,7 +43,7 @@ def generate_clicked(task: worker.AsyncTask):
     execution_start_time = time.perf_counter()
     finished = False
 
-    yield gr.update(visible=True, value=modules.html.make_progress_html(1, 'Waiting for task to start ...')), \
+    yield gr.update(visible=True, value=modules.html.make_progress_html(1, 'ስራ እስኪጀምር በመጠበቅ ላይ ...')), \
         gr.update(visible=True, value=None), \
         gr.update(visible=False, value=None), \
         gr.update(visible=False)
@@ -92,7 +92,7 @@ def inpaint_mode_change(mode, inpaint_engine_version):
 
 reload_javascript()
 
-title = f'Fooocus Inpaint Only'
+title = 'Inpaint AI'
 
 shared.gradio_root = gr.Blocks(title=title).queue()
 
@@ -103,18 +103,18 @@ with shared.gradio_root:
         with gr.Column(scale=2):
             # Main image display area
             with gr.Row():
-                progress_window = grh.Image(label='Preview', show_label=True, visible=False, height=768, elem_classes=['main_view'])
-                progress_gallery = gr.Gallery(label='Finished Images', show_label=True, object_fit='contain', height=768, visible=False, elem_classes=['main_view', 'image_gallery'])
+                progress_window = grh.Image(label='ቅድመ እይታ', show_label=True, visible=False, height=768, elem_classes=['main_view'])
+                progress_gallery = gr.Gallery(label='የተጠናቀቁ ምስሎች', show_label=True, object_fit='contain', height=768, visible=False, elem_classes=['main_view', 'image_gallery'])
             progress_html = gr.HTML(value=modules.html.make_progress_html(32, 'Progress 32%'), visible=False, elem_id='progress-bar', elem_classes='progress-bar')
-            gallery = gr.Gallery(label='Gallery', show_label=False, object_fit='contain', visible=True, height=768, elem_classes=['resizable_area', 'main_view', 'final_gallery', 'image_gallery'], elem_id='final_gallery')
+            gallery = gr.Gallery(label='ማዕከለ-ስዕላት', show_label=False, object_fit='contain', visible=True, height=768, elem_classes=['resizable_area', 'main_view', 'final_gallery', 'image_gallery'], elem_id='final_gallery')
             
             # Prompt and Generate button area
             with gr.Row():
                 with gr.Column(scale=17):
-                    prompt = gr.Textbox(show_label=False, placeholder="Type prompt here for inpainting.", elem_id='positive_prompt', autofocus=True, lines=3)
+                    prompt = gr.Textbox(show_label=False, placeholder="ለማስተካከል ጥያቄዎን እዚህ ያስገቡ።", elem_id='positive_prompt', autofocus=True, lines=3)
                 with gr.Column(scale=3, min_width=0):
-                    generate_button = gr.Button(label="Generate", value="Generate", elem_classes='type_row', elem_id='generate_button', visible=True)
-                    stop_button = gr.Button(label="Stop", value="Stop", elem_classes='type_row_half', elem_id='stop_button', visible=False)
+                    generate_button = gr.Button(label="ፍጠር", value="ፍጠር", elem_classes='type_row', elem_id='generate_button', visible=True)
+                    stop_button = gr.Button(label="አቁም", value="አቁም", elem_classes='type_row_half', elem_id='stop_button', visible=False)
                     def stop_clicked(currentTask):
                         import ldm_patched.modules.model_management as model_management
                         currentTask.last_stop = 'stop'
@@ -129,19 +129,19 @@ with shared.gradio_root:
             with gr.Row(visible=True) as image_input_panel:
                 with gr.Row():
                     with gr.Column():
-                        inpaint_input_image = grh.Image(label='Image for Inpainting', source='upload', type='numpy', tool='sketch', height=500, brush_color="#FFFFFF", elem_id='inpaint_canvas', show_label=True)
-                        inpaint_mode = gr.Dropdown(choices=modules.flags.inpaint_options, value=modules.config.default_inpaint_method, label='Method')
-                        inpaint_additional_prompt = gr.Textbox(placeholder="Describe what you want to inpaint.", elem_id='inpaint_additional_prompt', label='Inpaint Additional Prompt', visible=False)
-                        outpaint_selections = gr.CheckboxGroup(choices=['Left', 'Right', 'Top', 'Bottom'], value=[], label='Outpaint Direction')
-                        gr.HTML('* Powered by Fooocus Inpaint Engine <a href="https://github.com/lllyasviel/Fooocus/discussions/414" target="_blank">\U0001F4D4 Documentation</a>')
+                        inpaint_input_image = grh.Image(label='ለማስተካከል የሚሆን ምስል', source='upload', type='numpy', tool='sketch', height=500, brush_color="#FFFFFF", elem_id='inpaint_canvas', show_label=True)
+                        inpaint_mode = gr.Dropdown(choices=modules.flags.inpaint_options, value=modules.config.default_inpaint_method, label='ዘዴ')
+                        inpaint_additional_prompt = gr.Textbox(placeholder="ምን ማስተካከል እንደሚፈልጉ ይግለጹ።", elem_id='inpaint_additional_prompt', label='ተጨማሪ የማስተካከያ ጥያቄ', visible=False)
+                        outpaint_selections = gr.CheckboxGroup(choices=['ግራ', 'ቀኝ', 'ላይ', 'ታች'], value=[], label='የውጭ ቀለም አቅጣጫ')
+                        gr.HTML('* በ Fooocus የማስተካከያ ሞተር የተጎላበተ <a href="https://github.com/lllyasviel/Fooocus/discussions/414" target="_blank">\U0001F4D4 ሰነድ</a>')
                         
-                        # Inpaint-specific developer tools are kept for full control
-                        with gr.Accordion("Inpaint Settings", open=False):
-                            inpaint_engine = gr.Dropdown(label='Inpaint Engine', value=modules.config.default_inpaint_engine_version, choices=flags.inpaint_engine_versions, info='Version of Fooocus inpaint model.')
-                            inpaint_strength = gr.Slider(label='Inpaint Denoising Strength', minimum=0.0, maximum=1.0, step=0.001, value=1.0)
-                            inpaint_respective_field = gr.Slider(label='Inpaint Respective Field', minimum=0.0, maximum=1.0, step=0.001, value=0.618)
-                            inpaint_erode_or_dilate = gr.Slider(label='Mask Erode or Dilate', minimum=-64, maximum=64, step=1, value=0)
-                            invert_mask_checkbox = gr.Checkbox(label='Invert Mask When Generating', value=modules.config.default_invert_mask_checkbox)
+                        # The Inpaint Settings are removed from the UI and replaced with state objects
+                        # to pass default values to the backend, fulfilling the user's request.
+                        inpaint_engine = gr.State(modules.config.default_inpaint_engine_version)
+                        inpaint_strength = gr.State(1.0)
+                        inpaint_respective_field = gr.State(0.618)
+                        inpaint_erode_or_dilate = gr.State(0)
+                        invert_mask_checkbox = gr.State(modules.config.default_invert_mask_checkbox)
 
                     # REMOVED: All other tabs (Upscale, Image Prompt, Describe, Enhance, Metadata)
 
@@ -170,7 +170,7 @@ with shared.gradio_root:
     uov_input_image = gr.State(None)
     ip_ctrls = [gr.State(None)] * (modules.config.default_controlnet_image_count * 4) # Simplified dummy state
 
-    # The inpaint controls that are still visible in the UI
+    # The inpaint controls that are now hidden states
     inpaint_ctrls = [inpaint_engine, invert_mask_checkbox, inpaint_erode_or_dilate, inpaint_strength, inpaint_respective_field]
     inpaint_disable_initial_latent = gr.State(False) # Keep this as a state
     
